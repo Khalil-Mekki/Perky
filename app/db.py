@@ -1,9 +1,6 @@
 import datetime
-from sqlalchemy import Column, Integer, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-
-# from app.main import db,ma
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -42,7 +39,7 @@ class Clients(db.Model):
 class Perks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), unique=True)
-    provider_id = Column(Integer, ForeignKey("partners.id"))
+    provider_id = db.Column(db.Integer, db.ForeignKey("partners.id"))
     quantity_available = db.Column(db.Integer, nullable=False)
 
     def __init__(self, name, provider_id, quantity_available):

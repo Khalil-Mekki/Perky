@@ -1,0 +1,5 @@
+flask
+flask-marshmallow
+Flask-SQLAlchemy
+Flask-HTTPAuth
+
