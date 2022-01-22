@@ -1,4 +1,5 @@
 flask
+flask-restful
 flask-marshmallow
 Flask-SQLAlchemy
 Flask-HTTPAuth
