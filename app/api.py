@@ -114,7 +114,6 @@ class UserManager(Resource):
         password = request.json["password"]
         is_admin = request.json["is_admin"]
         email = request.json["email"]
-        ##date_added = request.json['date_added']
 
         userss.name = name
         userss.password = password
@@ -144,7 +143,7 @@ class UserManager(Resource):
 
 class PartnerManager(Resource):
     @staticmethod
-    @auth.login_required(role="user")
+    @auth.login_required
     def get():
 
         id = request.args.get("id")
@@ -160,7 +159,6 @@ class PartnerManager(Resource):
         name = request.json["name"]
         address = request.json["address"]
         email = request.json["email"]
-        # date_added = request.json['date_added']
 
         partnerss = Partners(name, address, email)
         db.session.add(partnerss)
@@ -179,12 +177,10 @@ class PartnerManager(Resource):
         name = request.json["name"]
         address = request.json["address"]
         email = request.json["email"]
-        ##date_added = request.json['date_added']
 
         partnerss.name = name
         partnerss.address = address
         partnerss.email = email
-        ##partnerss.date_added = date_added
 
         db.session.commit()
         return jsonify({"Message": f"Partner {id} {name} altered."})
@@ -230,12 +226,10 @@ class ClientsManager(Resource):
         name = request.json["name"]
         address = request.json["address"]
         email = request.json["email"]
-        ##date_added = request.json['date_added']
 
         clientss.name = name
         clientss.address = address
         clientss.email = email
-        ##partnerss.date_added = date_added
 
         db.session.commit()
         return jsonify({"Message": f"Partner {id} {name} altered."})
@@ -271,7 +265,7 @@ class ClientsManager(Resource):
 
 class PerksManager(Resource):
     @staticmethod
-    @auth.login_required(role="user")
+    @auth.login_required
     def get():
         id = request.args.get("id")
 
