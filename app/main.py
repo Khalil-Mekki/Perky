@@ -9,4 +9,4 @@ api.add_resource(UserManager, "/api/users")
 api.add_resource(PerksManager, "/api/perks")
 api.add_resource(ClientsManager, "/api/clients")
 api.add_resource(PartnerManager, "/api/partners")
-app.run(debug=True)
+

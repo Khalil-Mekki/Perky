@@ -61,8 +61,6 @@ def users_only():
     return "Hello {}!".format(auth.current_user())
 
 
-
-
 partner_schema = PartnersSchema()
 partners_schema = PartnersSchema(many=True)
 client_schema = ClientsSchema()
@@ -89,11 +87,16 @@ class UserManager(Resource):
     @auth.login_required(role="admin")
     def post():
         name = request.json["name"]
-        password  = request.json["password"]
+        password = request.json["password"]
         is_admin = request.json["is_admin"]
         email = request.json["email"]
 
-        userss = Users(name=name, password=generate_password_hash(password),is_admin= is_admin ,email=email)
+        userss = Users(
+            name=name,
+            password=generate_password_hash(password),
+            is_admin=is_admin,
+            email=email,
+        )
         db.session.add(userss)
         db.session.commit()
 
@@ -109,13 +112,13 @@ class UserManager(Resource):
         userss = Users.query.get(id)
         name = request.json["name"]
         password = request.json["password"]
-        is_admin= request.json["is_admin"]
+        is_admin = request.json["is_admin"]
         email = request.json["email"]
         ##date_added = request.json['date_added']
 
         userss.name = name
         userss.password = password
-        userss.is_admin=is_admin
+        userss.is_admin = is_admin
         userss.email = email
 
         db.session.commit()
@@ -135,11 +138,8 @@ class UserManager(Resource):
             db.session.delete(userss)
             db.session.commit()
             return jsonify({"Message": "User deleted."})
-        else : 
-            return jsonify({"Message":"user not found"})
-
-
-
+        else:
+            return jsonify({"Message": "user not found"})
 
 
 class PartnerManager(Resource):
