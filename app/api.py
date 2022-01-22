@@ -1,8 +1,18 @@
+import email
 from flask import Flask, request, jsonify
 from flask_restful import Resource
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.db import PartnersSchema, ClientsSchema, PerksSchema, Partners, Clients, Perks
+from app.db import (
+    PartnersSchema,
+    ClientsSchema,
+    PerksSchema,
+    UsersSchema,
+    Partners,
+    Clients,
+    Perks,
+    Users,
+)
 from app.db import db, ma
 from app.config import SQLALCHEMY_DATABASE_URI
 
@@ -23,8 +33,20 @@ app = create_app()
 
 
 @auth.get_user_roles
-def get_user_roles(username):
-    return user_data.get(username, {}).get("role")
+def get_user_roles(useremail):
+    if Users.query.get(useremail).is_admin:
+        return "admin"
+    else:
+        return "user"
+
+
+@auth.verify_password
+def verify_password(useremail, password):
+    user = Users.query.get(useremail)
+    if user and check_password_hash(user.password, password):
+        return useremail
+    else:
+        return False
 
 
 @app.route("/admin")
@@ -34,25 +56,11 @@ def admins_only():
 
 
 @app.route("/user")
-@auth.login_required(role="user")
+@auth.login_required()
 def users_only():
     return "Hello {}!".format(auth.current_user())
 
 
-user_data = {
-    "admin": {"password": generate_password_hash("admin"), "role": ["user", "admin"]},
-    "user": {"password": generate_password_hash("user"), "role": ["user"]},
-}
-
-
-@auth.verify_password
-def verify_password(username, password):
-    if username in user_data and check_password_hash(
-        user_data.get(username, {}).get("password"), password
-    ):
-        return username
-    else:
-        return False
 
 
 partner_schema = PartnersSchema()
@@ -61,17 +69,85 @@ client_schema = ClientsSchema()
 clients_schema = ClientsSchema(many=True)
 perk_schema = PerksSchema()
 perks_schema = PerksSchema(many=True)
+user_schema = UsersSchema()
+users_schema = UsersSchema(many=True)
+
+
+class UserManager(Resource):
+    @staticmethod
+    @auth.login_required(role="admin")
+    def get():
+
+        id = request.args.get("email")
+        if not id:
+            userss = Users.query.all()
+            return jsonify(users_schema.dump(userss))
+        uusers = Users.query.get(id)
+        return jsonify(user_schema.dump(uusers))
+
+    @staticmethod
+    @auth.login_required(role="admin")
+    def post():
+        name = request.json["name"]
+        password  = request.json["password"]
+        is_admin = request.json["is_admin"]
+        email = request.json["email"]
+
+        userss = Users(name=name, password=generate_password_hash(password),is_admin= is_admin ,email=email)
+        db.session.add(userss)
+        db.session.commit()
+
+        return jsonify({"Message": f"user {name} inserted."})
+
+    @staticmethod
+    @auth.login_required(role="admin")
+    def put():
+        id = request.args.get("email")
+        if not id:
+            return jsonify({"Message": "Must provide the user ID"})
+
+        userss = Users.query.get(id)
+        name = request.json["name"]
+        password = request.json["password"]
+        is_admin= request.json["is_admin"]
+        email = request.json["email"]
+        ##date_added = request.json['date_added']
+
+        userss.name = name
+        userss.password = password
+        userss.is_admin=is_admin
+        userss.email = email
+
+        db.session.commit()
+        return jsonify({"Message": f"User {name} altered."})
+
+    @staticmethod
+    @auth.login_required(role="admin")
+    def delete():
+
+        email = request.args.get("email")
+
+        if not email:
+            return jsonify({"Message": "Must provide the user email"})
+
+        userss = Users.query.get(email)
+        if userss:
+            db.session.delete(userss)
+            db.session.commit()
+            return jsonify({"Message": "User deleted."})
+        else : 
+            return jsonify({"Message":"user not found"})
+
+
+
 
 
 class PartnerManager(Resource):
     @staticmethod
     @auth.login_required(role="user")
     def get():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
 
+        id = request.args.get("id")
         if not id:
             partnerss = Partners.query.all()
             return jsonify(partners_schema.dump(partnerss))
@@ -95,11 +171,7 @@ class PartnerManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def put():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
-
+        id = request.args.get("id")
         if not id:
             return jsonify({"Message": "Must provide the user ID"})
 
@@ -120,10 +192,8 @@ class PartnerManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def delete():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+
+        id = request.args.get("id")
 
         if not id:
             return jsonify({"Message": "Must provide the partner ID"})
@@ -139,10 +209,7 @@ class ClientsManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def get():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+        id = request.args.get("id")
 
         if not id:
             clientss = Clients.query.all()
@@ -153,10 +220,8 @@ class ClientsManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def put():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+
+        id = request.args.get("id")
 
         if not id:
             return jsonify({"Message": "Must provide the user ID"})
@@ -191,10 +256,8 @@ class ClientsManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def delete():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+
+        id = request.args.get("id")
 
         if not id:
             return jsonify({"Message": "Must provide the client ID"})
@@ -210,10 +273,7 @@ class PerksManager(Resource):
     @staticmethod
     @auth.login_required(role="user")
     def get():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+        id = request.args.get("id")
 
         if not id:
             perkss = Perks.query.all()
@@ -237,10 +297,7 @@ class PerksManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def delete():
-        try:
-            id = request.args["id"]
-        except Exception as _:
-            id = None
+        id = request.args.get("id")
 
         if not id:
             return jsonify({"Message": "Must provide the perk ID"})

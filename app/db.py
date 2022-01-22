@@ -6,6 +6,27 @@ db = SQLAlchemy()
 ma = Marshmallow()
 
 
+
+class Users(db.Model):
+    name = db.Column(db.String(32), unique=True)
+    password= db.Column(db.String(32), unique=True)
+    is_admin= db.Column(db.Boolean)
+    email = db.Column(db.String(32),primary_key=True)
+    date_added = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    def __init__(self, name,is_admin, password, email):
+        self.name = name
+        self.is_admin= is_admin
+        self.password = password
+        self.email = email
+    
+class UsersSchema(ma.Schema):
+    class Meta:
+        fields = ("name", "password", "is_admin","email", "date_added")
+
+
+
+
+
 class Partners(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(32), unique=True)
