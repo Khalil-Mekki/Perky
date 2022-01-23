@@ -76,8 +76,8 @@ class UserManager(Resource):
     @auth.login_required(role="admin")
     def get():
 
-        id = request.args.get("email")
-        if not id:
+        email = request.args.get("email")
+        if not email:
             userss = Users.query.all()
             return jsonify(users_schema.dump(userss))
         uusers = Users.query.get(id)
@@ -105,11 +105,11 @@ class UserManager(Resource):
     @staticmethod
     @auth.login_required(role="admin")
     def put():
-        id = request.args.get("email")
-        if not id:
-            return jsonify({"Message": "Must provide the user ID"})
+        email = request.args.get("email")
+        if not email:
+            return jsonify({"Message": "Must provide the user email"})
 
-        userss = Users.query.get(id)
+        userss = Users.query.get(email)
         name = request.json["name"]
         password = request.json["password"]
         is_admin = request.json["is_admin"]
@@ -171,7 +171,7 @@ class PartnerManager(Resource):
     def put():
         id = request.args.get("id")
         if not id:
-            return jsonify({"Message": "Must provide the user ID"})
+            return jsonify({"Message": "Must provide the partner ID"})
 
         partnerss = Partners.query.get(id)
         name = request.json["name"]
