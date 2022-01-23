@@ -116,7 +116,7 @@ class UserManager(Resource):
         email = request.json["email"]
 
         userss.name = name
-        userss.password = password
+        userss.password = generate_password_hash(password)
         userss.is_admin = is_admin
         userss.email = email
 
@@ -220,7 +220,7 @@ class ClientsManager(Resource):
         id = request.args.get("id")
 
         if not id:
-            return jsonify({"Message": "Must provide the user ID"})
+            return jsonify({"Message": "Must provide the cLient ID"})
 
         clientss = Clients.query.get(id)
         name = request.json["name"]
@@ -232,7 +232,7 @@ class ClientsManager(Resource):
         clientss.email = email
 
         db.session.commit()
-        return jsonify({"Message": f"Partner {id} {name} altered."})
+        return jsonify({"Message": f"Client {id} {name} altered."})
 
     @staticmethod
     @auth.login_required(role="admin")
